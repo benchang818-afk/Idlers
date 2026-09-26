@@ -1,0 +1,440 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
+<title>閒人漫步 Idlers</title>
+<style>
+*{box-sizing:border-box}
+html,body{margin:0;background:#080a0e;color:#f4f6f8;font-family:system-ui,"Noto Sans TC",sans-serif;overflow:hidden}
+button,input,textarea{font:inherit}
+button{cursor:pointer}
+#app{width:min(100%,520px);height:100vh;margin:auto;background:#101319;display:flex;flex-direction:column;border-left:1px solid #272d37;border-right:1px solid #272d37}
+header{height:58px;flex:none;display:flex;align-items:center;justify-content:space-between;padding:0 15px;border-bottom:1px solid #303641;background:#11151b}
+.logo{font-weight:900;font-size:19px;letter-spacing:.5px}
+.logo span{font-size:12px;color:#8994a3;margin-left:5px;font-weight:500}
+.iconBtn{background:none;border:0;color:#fff;font-size:23px;padding:5px}
+.onlineLine{font-size:10px;color:#8994a3;margin-top:2px}.onlineDot{color:#58c77b;font-size:8px;margin-right:4px}
+#feed{flex:1;overflow:auto;padding-bottom:66px}
+.post{border-bottom:1px solid #303641;padding:13px 15px 12px;background:#11151b}
+.head{display:flex;align-items:center;gap:10px;margin-bottom:11px}
+.avatar{width:38px;height:38px;border-radius:50%;display:grid;place-items:center;background:#27303d;font-size:20px;border:1px solid #414b59}
+.user{font-weight:800;font-size:14px}
+.time{color:#7f8998;font-size:11px;margin-top:2px}
+.more{margin-left:auto;color:#8993a2}
+.body{font-size:16px;line-height:1.65;white-space:pre-wrap;word-break:break-word;user-select:text}.body.clamped{display:-webkit-box;-webkit-line-clamp:7;-webkit-box-orient:vertical;overflow:hidden}
+.actions{display:flex;align-items:center;gap:15px;margin-top:12px}
+.action{background:none;border:0;color:#d8dde4;padding:0;font-size:14px}
+.action.like.liked{color:#ff6678}
+.count{font-size:12px;color:#9aa4b1;margin-top:7px}
+.comments{margin-top:9px}
+.comment{font-size:13px;line-height:1.45;margin:5px 0;color:#d8dde4}
+.comment b{color:#fff;margin-right:5px}
+.viewAll{border:0;background:none;color:#7f8998;padding:2px 0;font-size:13px}
+.commentRow{display:flex;gap:7px;margin-top:9px}
+.commentRow input{flex:1;min-width:0;background:#0b0e13;border:1px solid #323b48;border-radius:18px;padding:7px 12px;color:#fff;outline:none}
+.commentRow button{border:0;background:none;color:#8eb8ff;font-weight:800}
+.empty{height:100%;display:flex;align-items:center;justify-content:center;text-align:center;color:#8f99a8;padding:40px;font-size:15px;line-height:1.7}
+nav{height:62px;flex:none;position:fixed;bottom:0;left:50%;transform:translateX(-50%);width:min(100%,520px);display:flex;justify-content:space-around;align-items:center;background:#11151bf5;border-top:1px solid #303641;z-index:5}
+nav button{background:none;border:0;color:#8f99a8;font-size:21px;display:flex;flex-direction:column;align-items:center;gap:2px}
+nav button.active{color:#fff}
+nav small{font-size:9px}
+#compose,#profile,#explore{position:fixed;inset:0;background:#080a0e;display:none;z-index:10}
+.panel{width:min(100%,520px);height:100%;margin:auto;background:#101319;display:flex;flex-direction:column}
+.panelHead{height:58px;display:flex;align-items:center;padding:0 13px;border-bottom:1px solid #303641}
+.panelHead h2{font-size:17px;margin:auto}
+.panelHead button{background:none;border:0;color:#fff;font-size:15px}
+.composeBody{padding:16px;flex:1}
+textarea{width:100%;height:230px;background:#0b0e13;border:0;color:#fff;outline:0;resize:none;font-size:17px;line-height:1.7}
+.composeHint{color:#737e8e;font-size:12px;margin-top:12px}
+.publish{margin-top:18px;width:100%;border:0;border-radius:9px;background:#3b82f6;color:#fff;padding:11px;font-weight:900}
+.profileTop{text-align:center;padding:24px 16px;border-bottom:1px solid #303641}
+.bigAvatar{font-size:45px;width:76px;height:76px;border-radius:50%;background:#27303d;display:grid;place-items:center;margin:auto;border:1px solid #485363}
+.profileName{font-size:18px;font-weight:900;margin-top:9px}
+.profileSub{font-size:12px;color:#8791a0;margin-top:4px}
+.tabs{display:flex;border-bottom:1px solid #303641}.tabs button{flex:1;background:none;border:0;color:#8d97a5;padding:12px}.tabs .sel{color:#fff;border-bottom:2px solid #fff}
+.miniPost{padding:14px 16px;border-bottom:1px solid #303641}.miniPost .body{font-size:14px}
+ .seenLine{display:flex;align-items:center;gap:4px;color:#778292;font-size:11px;margin-top:9px}
+.seenAvatar{width:19px;height:19px;border-radius:50%;background:#252d38;display:grid;place-items:center;font-size:11px;border:1px solid #3a4350}
+#toast{position:fixed;left:50%;bottom:78px;transform:translateX(-50%);background:#e9edf2;color:#101319;padding:9px 14px;border-radius:20px;font-size:13px;font-weight:800;display:none;z-index:30}
+</style>
+</head>
+<body>
+<div id="app">
+<header>
+ <div>
+  <div class="logo">閒人漫步 <span>深夜牆</span></div>
+  <div class="onlineLine"><span class="onlineDot">●</span><span id="onlineCount">0 人在線</span></div>
+ </div>
+ <button class="iconBtn" id="topCompose">＋</button>
+</header>
+<main id="feed"></main>
+<nav>
+<button class="active" data-page="home">⌂<small>首頁</small></button>
+<button data-page="explore">⌕<small>探索</small></button>
+<button data-page="compose">＋<small>發文</small></button>
+<button data-page="profile">♙<small>我的</small></button>
+</nav>
+</div>
+
+<div id="compose"><div class="panel">
+ <div class="panelHead"><button id="cancelCompose">取消</button><h2>新增貼文</h2><button id="publishTop">發佈</button></div>
+ <div class="composeBody"><textarea id="postText" placeholder="今晚想留下什麼？"></textarea><div class="composeHint">你寫下的內容才會出現在深夜牆。系統不會替你捏造發文。<br>有情緒的文字會得到比較認真的回應，不會讓一排帳號只說「加油」。</div><button class="publish" id="publish">發佈到深夜牆</button></div>
+</div></div>
+
+<div id="profile"><div class="panel">
+ <div class="panelHead"><button id="closeProfile">返回</button><h2>我的</h2><span></span></div>
+ <div class="profileTop"><div class="bigAvatar" id="myAvatar">🌙</div><div class="profileName" id="myName">玩家</div><div class="profileSub">這次開啟 App 後留下的話</div></div>
+ <div class="tabs"><button class="sel">貼文</button></div>
+ <div id="myPosts" style="overflow:auto"></div>
+</div></div>
+
+<div id="explore"><div class="panel">
+ <div class="panelHead"><button id="closeExplore">返回</button><h2>探索</h2><span></span></div>
+ <div id="exploreFeed" style="overflow:auto"></div>
+</div></div>
+
+<div id="toast"></div>
+
+<script>
+"use strict";
+const feed=document.getElementById("feed");
+let posts=[];
+let name=localStorage.getItem("idlers_name")||"玩家";
+const profiles=[
+ {name:"夜班超商員",avatar:"🧃",style:"clerk"},
+ {name:"地下電台",avatar:"📻",style:"radio"},
+ {name:"誇誇怪",avatar:"👑",style:"praise"},
+ {name:"野貓",avatar:"🐈",style:"cat"},
+ {name:"阿澤",avatar:"🎒",style:"student"},
+ {name:"小林",avatar:"📚",style:"student"},
+ {name:"晚自習結束",avatar:"🏫",style:"student"},
+ {name:"半夜還醒著",avatar:"🎮",style:"gamer"},
+ {name:"耳機還戴著",avatar:"🎧",style:"music"},
+ {name:"凌晨散步者",avatar:"🚶",style:"quiet"},
+ {name:"剛好在線",avatar:"🪐",style:"quiet"},
+ {name:"便利商店二號",avatar:"🥤",style:"clerk"},
+ {name:"雨天觀察員",avatar:"🌧️",style:"quiet"},
+ {name:"桌邊小夜燈",avatar:"💡",style:"quiet"},
+ {name:"校門口的人",avatar:"🚲",style:"student"},
+ {name:"三點睡的人",avatar:"🌙",style:"quiet"},
+ {name:"遊戲大廳",avatar:"🕹️",style:"gamer"},
+ {name:"今天吃什麼",avatar:"🍜",style:"food"},
+ {name:"路邊的人",avatar:"🚶‍♂️",style:"quiet"},
+ {name:"還沒睡",avatar:"😴",style:"quiet"}
+];
+
+function esc(s){return String(s).replace(/[&<>"']/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[m]))}
+function save(){}
+function toast(s){const t=document.getElementById("toast");t.textContent=s;t.style.display="block";clearTimeout(toast.x);toast.x=setTimeout(()=>t.style.display="none",1600)}
+function risk(text){
+ return ["不想活","想死","自殺","自傷","傷害自己","活不下去"].some(x=>text.includes(x));
+}
+function reply(profile,text){
+ const t=text.trim();
+ if(["不想活","想死","自殺","自傷","傷害自己","活不下去"].some(x=>t.includes(x))){
+   return profile.style==="cat"?"喵……（安靜坐在旁邊）":"先別一個人扛著。現在找一個信任的大人陪你，會比較安全。";
+ }
+ const tired=/累|好累|疲憊|撐不住|壓力|好煩|崩潰|受不了|喘不過氣/.test(t);
+ const sad=/難過|傷心|失落|孤單|寂寞|哭|委屈|低落|想哭/.test(t);
+ const failure=/失敗|做不好|考不好|搞砸|很笨|沒用|不行/.test(t);
+ const lonely=/沒人|沒有人|一個人|沒朋友|沒人陪|被忽略/.test(t);
+
+ if(profile.style==="cat"){
+   if(sad||lonely||tired) return "喵……（默默坐到你旁邊）";
+   if(/喵|貓|貓咪/.test(t)) return "喵。";
+   return "（耳朵動了一下，陪你待著）";
+ }
+ if(profile.style==="clerk"){
+   if(tired) return "今天是不是撐很久了？先休息一下吧，事情不用今晚全部解決。";
+   if(sad||lonely) return "我有看到。你不用急著把這份難過解釋清楚。";
+   if(failure) return "一次做不好，不代表你就是做不好的人。今晚先讓自己喘口氣。";
+   if(t.length<=2) return "嗯，我在。";
+   return "我有看完。慢慢說也沒關係。";
+ }
+ if(profile.style==="radio"){
+   if(tired||sad) return "凌晨訊號收到。你不用整理好自己，才值得有人聽。";
+   if(lonely) return "本台確認：今晚還有人在線。你不是把話丟進黑洞裡。";
+   if(failure) return "這裡不判你輸贏。搞砸一件事，不等於整晚都得判自己出局。";
+   return "深夜頻道開著。你的訊號，我收到了。";
+ }
+ if(profile.style==="praise"){
+   if(tired) return "你已經撐到現在了，這本身就值得被看見。";
+   if(sad) return "你願意把難過寫出來，不代表脆弱。至少這一刻，你沒有假裝沒事。";
+   if(failure) return "你可以承認這次很挫折，但別急著用一次結果定義自己。";
+   if(lonely) return "你說「沒有人」，我有看到這句。先在這裡坐一下吧。";
+   return "這句有自己的味道，我認真看到了。";
+ }
+ if(tired||sad) return "我有看到。今晚不用急著把一切想明白。";
+ if(lonely) return "你把這句留下來了，我就不讓它只是飄過去。";
+ return "有看到。慢慢說就好。";
+}
+
+function chooseResponders(text){
+ const t=text.trim();
+ const high=["不想活","想死","自殺","自傷","傷害自己","活不下去"].some(x=>t.includes(x));
+ if(high) return profiles.slice(0,2);
+
+ // 開心／興奮／好消息：一定有人接住，而且至少兩個 NPC 回應
+ const happy=/開心|高興|快樂|超爽|爽爆|太爽|興奮|成功|成功了|做到了|過了|過關|考上|錄取|拿到|買到了|搶到|抽到|贏了|贏|完成|完成了|喜歡|超喜歡|愛死|好吃|好可愛|可愛|推薦|狂推|值得|幸福|期待|哈哈|笑死|耶|讚|棒|超棒|好棒/.test(t);
+ if(happy){
+  const praise=profiles.find(p=>p.style==="praise");
+  const others=profiles.filter(p=>p!==praise);
+  const second=others[Math.floor(Math.random()*others.length)];
+  return [praise,second];
+ }
+
+ // 難過／高壓內容：優先找比較會安靜陪伴的 NPC
+ const sad=/難過|傷心|失落|孤單|寂寞|哭|委屈|低落|想哭|好煩|壓力|累|好累|疲憊|撐不住/.test(t);
+ if(sad){
+  const suitable=profiles.filter(p=>p.style==="quiet"||p.style==="clerk"||p.style==="radio");
+  return [suitable[Math.floor(Math.random()*suitable.length)]];
+ }
+
+ const roll=Math.random();
+ if(roll<0.38) return [];
+ if(roll<0.86) return [profiles[Math.floor(Math.random()*profiles.length)]];
+ const a=Math.floor(Math.random()*profiles.length);
+ let b=Math.floor(Math.random()*profiles.length);
+ while(b===a) b=Math.floor(Math.random()*profiles.length);
+ return [profiles[a],profiles[b]];
+}
+
+function variedReply(profile,text){
+ const t=text.trim();
+ const tired=/累|好累|疲憊|撐不住|壓力|好煩|受不了|爆炸/.test(t);
+ const sad=/難過|傷心|失落|孤單|寂寞|哭|委屈|低落/.test(t);
+ const future=/未來|方向|長大|以後|不知道要/.test(t);
+ const school=/學校|上課|作業|考試|老師|同學/.test(t);
+ const food=/吃|晚餐|宵夜|關東煮|飲料|便利商店/.test(t);
+ const game=/遊戲|打了|過關|抽卡|排位/.test(t);
+ const relationship=/朋友|喜歡|感情|關係|告白|離開|想念/.test(t);
+ const long=t.length>120;
+
+ if(["不想活","想死","自殺","自傷","傷害自己","活不下去"].some(x=>t.includes(x))){
+   return profile.style==="cat" ? "喵……（安靜待在旁邊）" :
+          "先別一個人扛著。現在找一個信任的大人陪你，會比較安全。";
+ }
+
+ // 開心內容：NPC 必須跟著開心，不再對好消息錯誤地給安慰式回覆
+ const happy=/開心|高興|快樂|超爽|爽爆|太爽|興奮|成功|成功了|做到了|過了|過關|考上|錄取|拿到|買到了|搶到|抽到|贏了|贏|完成|完成了|喜歡|超喜歡|愛死|好吃|好可愛|可愛|推薦|狂推|值得|幸福|期待|哈哈|笑死|耶|讚|棒|超棒|好棒/.test(t);
+ if(happy){
+  if(profile.style==="praise") return [
+   "這個真的值得開心一下！👏",
+   "這種好消息就該直接拿出來炫耀一下。",
+   "看到你這麼開心，我也被感染到了。",
+   "這個我給過！今天可以好好開心一下。",
+   "懂了，這篇就是純粹的快樂。",
+   "這種事情當然要狂推啊 😂"
+  ][Math.floor(Math.random()*6)];
+  if(profile.style==="cat") return "喵！✨";
+  if(profile.style==="clerk") return [
+   "這個值得慶祝一下吧！",
+   "可以，今天這件事值得開心。",
+   "看到這種消息心情都好了。",
+   "恭喜啦，這波真的可以。"
+  ][Math.floor(Math.random()*4)];
+  if(profile.style==="radio") return [
+   "本台宣布：今晚是好消息頻道。",
+   "收到快樂訊號，這波值得播出去。",
+   "今晚的頻率突然變亮了。",
+   "這種消息我喜歡，繼續保持這個頻道。"
+  ][Math.floor(Math.random()*4)];
+  return [
+   "這個真的值得開心！",
+   "看到你開心，我也覺得不錯。",
+   "這波可以，恭喜啦。",
+   "這種好消息就該留下來。"
+  ][Math.floor(Math.random()*4)];
+ }
+
+ const pools={
+  cat:[
+   tired?"（耳朵垂下來，靠近一點）":"（尾巴輕輕晃了一下）",
+   sad?"喵……":"喵。",
+   "（在旁邊坐著）",
+   "喵。你說。"
+  ],
+  clerk:[
+   tired?"今天是不是被很多事情一起撞上來了？":"這個時間還醒著的人，多少都有點故事。",
+   school?"學生的晚上真的很容易突然變成第二個白天。":"我懂那種回家之後才開始累的感覺。",
+   food?"先去喝點水也好。":"這句我停下來看了一下。",
+   long?"我慢慢看完了。最後那段特別有感。":"我先陪你坐一下，不急著下結論。"
+  ],
+  radio:[
+   tired?"今晚的世界音量確實有點太大。":"深夜訊號收到，這段有點沉。",
+   future?"這像是在找方向的訊號。":"這句有留在頻道裡。",
+   game?"本台恭喜你完成今晚任務。":"收到，今晚這個訊號很真。",
+   long?"整篇播完了。最後幾句我記住了。":"這篇我收到了。"
+  ],
+  praise:[
+   tired?"你把「累」寫得很有畫面。":"這句其實滿有力量的。",
+   school?"這種校園日常寫起來反而很真。":"我喜歡這篇沒有硬裝沒事。",
+   relationship?"你沒有把這段關係講得很簡單，這點很好。":"這句很像真的想過很久才寫下來。",
+   future?"那個迷惘寫得很真，不像硬湊出來的。":"我喜歡這篇留下來的那種不確定感。",
+   long?"我看完了，最喜歡你中間那一段。":"短短幾句，但畫面滿清楚的。"
+  ],
+  quiet:[
+   tired?"今天是不是事情太多了。":"這個時間看到這句，滿有共鳴的。",
+   sad?"嗯……這種感覺我懂一點。":"有些話真的只能晚上才寫得出來。",
+   future?"我也偶爾會卡在這種問題裡。":"先不用急著找到答案吧。",
+   relationship?"這種事情旁人很難替你下結論。":"我反而會想知道你後來怎麼想。",
+   school?"看起來今天過得不太輕鬆。":"這篇滿像某個普通但很累的晚上。"
+  ]
+ };
+
+ let arr=pools[profile.style]||pools.quiet;
+ // Choose a response that is relevant and not identical to the last response this NPC gave.
+ const relevant=arr.filter(x=>x);
+ const last=profile._lastReply;
+ const candidates=relevant.filter(x=>x!==last);
+ const pick=(candidates.length?candidates:relevant)[Math.floor(Math.random()*(candidates.length?candidates.length:relevant.length))];
+ profile._lastReply=pick;
+ return pick;
+}
+
+function postCard(p,showAll=false){
+ const comments=p.comments||[];
+ const shown=showAll?comments:comments.slice(-3);
+ return `<article class="post">
+  <div class="head"><div class="avatar">${esc(p.avatar||"🌙")}</div><div><div class="user">${esc(p.author)}</div><div class="time">${esc(p.time||"剛剛")}</div></div><div class="more">•••</div></div>
+  <div class="body ${p.text.length>220&&!p.expanded?"clamped":""}">${esc(p.text)}</div>
+  <div class="actions"><button class="action like ${p.liked?"liked":""}" data-like="${p.id}">♥ ${p.likes||0}</button><button class="action" data-focus="${p.id}">💬 ${comments.length}</button><button class="action">↗ 分享</button></div>
+  ${p.viewers?.length?`<div class="seenLine">${p.viewers.map(v=>`<span class="seenAvatar">${esc(v.avatar)}</span>`).join("")}<span>剛剛 ${p.viewers.length} 人看過</span></div>`:""}
+  ${(p.likes||0)>0?`<div class="count">${p.likes} 個喜歡${p.likedBy?.length?`　·　${esc(p.likedBy[0])} 按了讚`:""}</div>`:""}
+  <div class="comments">
+   ${comments.length>3&&!showAll?`<button class="viewAll" data-all="${p.id}">查看全部 ${comments.length} 則留言</button>`:""}
+   ${shown.map(c=>`<div class="comment"><b>${esc(c.author)}</b>${esc(c.text)}</div>`).join("")}
+   <div class="commentRow"><input data-comment="${p.id}" placeholder="留言……"><button data-send="${p.id}">送出</button></div>
+  </div>
+ </article>`;
+}
+const communityTemplates=[
+ {author:"阿澤",avatar:"🎒",text:"明天第一節數學，我現在才發現作業根本沒寫。",likes:4,comments:[{author:"夜班超商員",text:"現在寫還來得及吧😂"}]},
+ {author:"便利商店二號",avatar:"🧃",text:"剛下班。今天的關東煮意外地好吃。",likes:7,comments:[]},
+ {author:"半夜還醒著",avatar:"🎮",text:"打了兩個小時終於過這關。睡前最後一局果然是假的。",likes:9,comments:[{author:"阿澤",text:"「最後一局」這句我聽過太多次了。"}]},
+ {author:"路過貓",avatar:"🐈",text:"樓下那隻貓今天終於讓我摸到了。",likes:12,comments:[{author:"阿澤",text:"羨慕。"}]},
+ {author:"凌晨散步者",avatar:"🚶",text:"剛剛出去買飲料，街上幾乎沒有人。風滿舒服的。",likes:5,comments:[]},
+ {author:"耳機還戴著",avatar:"🎧",text:"今天一直重播同一首歌。不是因為難過，只是現在很適合。",likes:6,comments:[]},
+ {author:"阿澤",avatar:"🎒",text:"今天在學校笑了一整天，回家才發現其實有點累。",likes:3,comments:[]},
+ {author:"夜貓觀察員",avatar:"🌙",text:"有人也是洗完澡之後才開始有精神嗎？",likes:8,comments:[{author:"便利商店二號",text:"完全是。"}]}
+];
+
+let communityPosts=[];
+let onlineProfiles=[];
+function refreshOnline(){
+ const shuffled=[...profiles].sort(()=>Math.random()-.5);
+ // Keep at least 3 online; the student 阿澤 is always online.
+ const count=3+Math.floor(Math.random()*8);
+ onlineProfiles=shuffled.slice(0,count);
+ if(!onlineProfiles.some(p=>p.name==="阿澤")) onlineProfiles[0]=profiles.find(p=>p.name==="阿澤");
+ document.getElementById("onlineCount").textContent=`${onlineProfiles.length} 人在線`;
+}
+function freshCommunity(){
+ const expandedCommunity=[
+ ...communityTemplates,
+ {author:"小林",avatar:"📚",text:"今天最後一節課老師提早五分鐘下課，全班瞬間醒了。",likes:5,comments:[]},
+ {author:"晚自習結束",avatar:"🏫",text:"走出教室的時候才發現外面已經全黑了。",likes:4,comments:[]},
+ {author:"耳機還戴著",avatar:"🎧",text:"公車上聽歌聽到差點坐過站。",likes:7,comments:[]},
+ {author:"雨天觀察員",avatar:"🌧️",text:"下雨天的便利商店門口，好像特別亮。",likes:8,comments:[]},
+ {author:"今天吃什麼",avatar:"🍜",text:"今晚吃拉麵。沒有特別的原因，就是突然很想吃。",likes:10,comments:[]},
+ {author:"校門口的人",avatar:"🚲",text:"今天騎車回家比平常快，風剛好。",likes:6,comments:[]},
+ {author:"三點睡的人",avatar:"🌙",text:"明明說要早點睡，結果又來到這個時間。",likes:11,comments:[]},
+ {author:"遊戲大廳",avatar:"🕹️",text:"今天終於抽到想要的角色。可以安心睡了。",likes:13,comments:[]},
+ {author:"桌邊小夜燈",avatar:"💡",text:"房間只開一盞燈的時候，整個晚上都安靜很多。",likes:4,comments:[]},
+ {author:"還沒睡",avatar:"😴",text:"有人也是越接近睡覺時間反而越清醒嗎？",likes:9,comments:[]}
+ ];
+ const shuffled=[...expandedCommunity].sort(()=>Math.random()-.5);
+ communityPosts=shuffled.slice(0,6).map((x,i)=>({
+   id:"community_"+i,
+   author:x.author,avatar:x.avatar,text:x.text,likes:x.likes,
+   comments:x.comments.map(c=>({author:c.author,text:c.text})),
+   viewers:[],
+   community:true
+ }));
+}
+function renderHome(){
+ if(!communityPosts.length) { freshCommunity(); refreshOnline(); }
+ const combined=[...posts,...communityPosts];
+ feed.innerHTML=combined.map(p=>postCard(p)).join("");
+ bindFeed(feed);
+}
+function bindFeed(root){
+ root.querySelectorAll("[data-like]").forEach(b=>b.onclick=()=>{
+  const p=[...posts,...communityPosts].find(x=>x.id===b.dataset.like);if(!p)return;p.likes=(p.likes||0)+(p.liked?-1:1);p.liked=!p.liked;if(!p.community)save();renderHome();
+ });
+ root.querySelectorAll("[data-send]").forEach(b=>b.onclick=()=>sendComment(b.dataset.send,root));
+ root.querySelectorAll("[data-comment]").forEach(i=>i.onkeydown=e=>{if(e.key==="Enter")sendComment(i.dataset.comment,root)});
+ root.querySelectorAll("[data-all]").forEach(b=>b.onclick=()=>{const p=[...posts,...communityPosts].find(x=>x.id===b.dataset.all);if(!p)return;b.closest(".post").outerHTML=postCard(p,true);bindFeed(root)});
+}
+function sendComment(id,root){
+ const inputs=root.querySelectorAll("[data-comment]");
+ let input=null;
+ for(const el of inputs){
+  if(el.getAttribute("data-comment")===id){input=el;break;}
+ }
+ if(!input){toast("找不到留言欄");return;}
+ const text=input.value.trim();
+ if(!text){toast("先寫點留言");return;}
+ const p=[...posts,...communityPosts].find(x=>x.id===id);
+ if(!p){toast("找不到這篇貼文");return;}
+ p.comments=p.comments||[];
+ p.comments.push({author:name,text});
+ input.value="";
+ if(!p.community)save();
+ renderHome();
+ toast("留言已發佈！");
+}
+function openCompose(){document.getElementById("compose").style.display="block";document.getElementById("postText").focus()}
+function closeCompose(){document.getElementById("compose").style.display="none"}
+function publish(){
+ const input=document.getElementById("postText"),text=input.value.trim();if(!text){toast("先寫下一點東西");return}
+ if(name==="玩家"){const n=prompt("第一次發文，請輸入你的名字：");if(!n)return;name=n.trim().slice(0,18)||"玩家";localStorage.setItem("idlers_name",name)}
+ const likeNames=[
+   {name:"阿澤",avatar:"🎒"},
+   {name:"夜班超商員",avatar:"🧃"},
+   {name:"半夜還醒著",avatar:"🎮"},
+   {name:"凌晨散步者",avatar:"🚶"},
+   {name:"耳機還戴著",avatar:"🎧"}
+ ];
+ const firstLiker=likeNames[Math.floor(Math.random()*likeNames.length)];
+ const p={id:Date.now().toString(36)+Math.random().toString(36).slice(2),
+   author:name,avatar:"🌙",text:text,
+   time:new Date().toLocaleString("zh-TW",{month:"numeric",day:"numeric",hour:"2-digit",minute:"2-digit"}),
+   likes:2+Math.floor(Math.random()*3),liked:false,comments:[],
+   viewers:[firstLiker],likedBy:[firstLiker.name]};
+ // AI 只針對玩家這篇真正輸入的文字回覆
+ chooseResponders(text).forEach(pr=>{const r=variedReply(pr,text);if(r)p.comments.push({author:pr.name,avatar:pr.avatar,text:r})});
+ posts.unshift(p);save();input.value="";closeCompose();renderHome();
+setTimeout(()=>toast(`${p.likedBy[0]} 按了你的讚`),350);
+}
+document.getElementById("publish").onclick=publish;document.getElementById("publishTop").onclick=publish;
+document.getElementById("cancelCompose").onclick=closeCompose;document.getElementById("topCompose").onclick=openCompose;
+
+function showProfile(){
+ document.getElementById("profile").style.display="block";
+ document.getElementById("myName").textContent=name;
+ document.getElementById("myPosts").innerHTML=posts.filter(p=>p.author===name).map(p=>`<div class="miniPost"><div class="body ${p.text.length>220&&!p.expanded?"clamped":""}">${esc(p.text)}</div><div class="time">${esc(p.time)}　♥ ${p.likes||0}　💬 ${(p.comments||[]).length}</div></div>`).join("")||`<div class="empty">你還沒有發過貼文。</div>`;
+}
+document.getElementById("closeProfile").onclick=()=>document.getElementById("profile").style.display="none";
+
+function showExplore(){
+ document.getElementById("explore").style.display="block";
+ const others=posts.filter(p=>p.author!==name);
+ document.getElementById("exploreFeed").innerHTML=others.length?others.map(p=>postCard(p)).join(""):`<div class="empty">還沒有其他人的貼文。<br><br>當深夜牆慢慢有人留下話，這裡會出現更多內容。</div>`;
+ bindFeed(document.getElementById("exploreFeed"));
+}
+document.getElementById("closeExplore").onclick=()=>document.getElementById("explore").style.display="none";
+
+document.querySelectorAll("nav button").forEach(b=>b.onclick=()=>{
+ document.querySelectorAll("nav button").forEach(x=>x.classList.remove("active"));b.classList.add("active");
+ const p=b.dataset.page;
+ if(p==="home")renderHome();
+ if(p==="compose")openCompose();
+ if(p==="profile")showProfile();
+ if(p==="explore")showExplore();
+});
+renderHome();
+</script>
+</body>
+</html>
